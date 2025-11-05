@@ -362,17 +362,9 @@ void TCKHostApplication::handle_result_config(const std::string& message) {
   log("INFO", "Result config: " + message);
 }
 
-// Test handlers
-void TCKHostApplication::run_session_establishment_test(
-    const std::vector<std::string>& params) {
-  // Parameters: <host_id>
-  if (params.empty()) {
-    log("ERROR", "Missing host_id parameter");
-    publish_result("OVERALL: NOT EXECUTED");
-    return;
-  }
-
-  std::string host_id = params[0];
+// Helper to establish session without publishing test results
+auto TCKHostApplication::establish_session(const std::string& host_id)
+    -> stdx::expected<void, std::string> {
   current_host_id_ = host_id;
 
   log("INFO", "Creating Host Application with host_id=" + host_id);
@@ -423,18 +415,14 @@ void TCKHostApplication::run_session_establishment_test(
     log("INFO", "Connecting to broker");
     auto connect_result = host_application_->connect();
     if (!connect_result) {
-      log("ERROR", "Failed to connect: " + connect_result.error());
-      publish_result("OVERALL: FAIL");
-      return;
+      return stdx::unexpected("Failed to connect: " + connect_result.error());
     }
 
     // Subscribe to all Sparkplug topics
     log("INFO", "Subscribing to spBv1.0/#");
     auto subscribe_result = host_application_->subscribe_all_groups();
     if (!subscribe_result) {
-      log("ERROR", "Failed to subscribe: " + subscribe_result.error());
-      publish_result("OVERALL: FAIL");
-      return;
+      return stdx::unexpected("Failed to subscribe: " + subscribe_result.error());
     }
 
     // Publish STATE birth message
@@ -442,18 +430,37 @@ void TCKHostApplication::run_session_establishment_test(
     log("INFO", "Publishing STATE birth message");
     auto state_result = host_application_->publish_state_birth(timestamp);
     if (!state_result) {
-      log("ERROR", "Failed to publish STATE: " + state_result.error());
-      publish_result("OVERALL: FAIL");
-      return;
+      return stdx::unexpected("Failed to publish STATE: " + state_result.error());
     }
 
     log("INFO", "Session established successfully");
-    publish_result("OVERALL: PASS");
+    return {};
 
   } catch (const std::exception& e) {
-    log("ERROR", std::string("Exception: ") + e.what());
-    publish_result("OVERALL: FAIL");
+    return stdx::unexpected(std::string("Exception: ") + e.what());
   }
+}
+
+// Test handlers
+void TCKHostApplication::run_session_establishment_test(
+    const std::vector<std::string>& params) {
+  // Parameters: <host_id>
+  if (params.empty()) {
+    log("ERROR", "Missing host_id parameter");
+    publish_result("OVERALL: NOT EXECUTED");
+    return;
+  }
+
+  std::string host_id = params[0];
+
+  auto result = establish_session(host_id);
+  if (!result) {
+    log("ERROR", result.error());
+    publish_result("OVERALL: FAIL");
+    return;
+  }
+
+  publish_result("OVERALL: PASS");
 }
 
 void TCKHostApplication::run_session_termination_test(
@@ -470,9 +477,14 @@ void TCKHostApplication::run_session_termination_test(
   try {
     // If host application is not running, start it first
     if (!host_application_) {
-      log("INFO", "Starting Host Application first");
-      run_session_establishment_test({host_id});
-      std::this_thread::sleep_for(std::chrono::seconds(2));
+      log("INFO", "Establishing session first");
+      auto result = establish_session(host_id);
+      if (!result) {
+        log("ERROR", result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     // Now terminate the session
@@ -520,8 +532,13 @@ void TCKHostApplication::run_send_command_test(const std::vector<std::string>& p
   try {
     // If host application is not running, start it first
     if (!host_application_) {
-      log("INFO", "Starting Host Application first");
-      run_session_establishment_test({host_id});
+      log("INFO", "Establishing session first");
+      auto result = establish_session(host_id);
+      if (!result) {
+        log("ERROR", result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -550,8 +567,13 @@ void TCKHostApplication::run_receive_data_test(const std::vector<std::string>& p
   try {
     // If host application is not running, start it first
     if (!host_application_) {
-      log("INFO", "Starting Host Application first");
-      run_session_establishment_test({host_id});
+      log("INFO", "Establishing session first");
+      auto result = establish_session(host_id);
+      if (!result) {
+        log("ERROR", result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -583,8 +605,13 @@ void TCKHostApplication::run_edge_session_termination_test(
   try {
     // If host application is not running, start it first
     if (!host_application_) {
-      log("INFO", "Starting Host Application first");
-      run_session_establishment_test({host_id});
+      log("INFO", "Establishing session first");
+      auto result = establish_session(host_id);
+      if (!result) {
+        log("ERROR", result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -614,8 +641,13 @@ void TCKHostApplication::run_message_ordering_test(
   try {
     // If host application is not running, start it first
     if (!host_application_) {
-      log("INFO", "Starting Host Application first");
-      run_session_establishment_test({host_id});
+      log("INFO", "Establishing session first");
+      auto result = establish_session(host_id);
+      if (!result) {
+        log("ERROR", result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
