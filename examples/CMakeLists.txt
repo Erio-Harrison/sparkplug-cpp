@@ -76,3 +76,9 @@ add_executable(tck_host_application
   tck_host_application.cpp
   tck_host_application_main.cpp)
 target_link_libraries(tck_host_application PRIVATE sparkplug_cpp)
+
+# TCK (Test Compatibility Kit) Edge Node
+add_executable(tck_edge_node
+  tck_edge_node.cpp
+  tck_edge_node_main.cpp)
+target_link_libraries(tck_edge_node PRIVATE sparkplug_cpp)
