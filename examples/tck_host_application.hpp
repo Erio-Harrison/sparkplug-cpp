@@ -5,6 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <MQTTAsync.h>
@@ -84,6 +85,13 @@ private:
 
   std::unique_ptr<HostApplication> host_application_;
   std::string current_host_id_;
+
+  struct MetricInfo {
+    std::string name;
+    uint32_t datatype;
+  };
+  std::unordered_map<std::string, std::unordered_map<std::string, MetricInfo>>
+      device_metrics_;
 };
 
 } // namespace sparkplug::tck
