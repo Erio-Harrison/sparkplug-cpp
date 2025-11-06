@@ -7,7 +7,7 @@ A modern C++-23 implementation of the Eclipse Sparkplug B 2.2 specification for 
 ## Features
 
 - **Full Sparkplug B 2.2 Compliance** - Implements the complete specification
-- **Modern C++-23** - Uses latest C++ features (std::expected, ranges, modules-ready)
+- **Modern C++-23 First** - Designed for C++-23, with compatibility for older stdlib implementations
 - **Type Safe** - Leverages strong typing and compile-time checks
 - **TLS/SSL Support** - Secure MQTT connections with optional mutual authentication
 - **Easy Integration** - Simple EdgeNode/HostApplication API
@@ -71,6 +71,19 @@ We could make RBE configurable (pass in thresholds, deadband functions, etc.), b
 If you're already specifying the thresholds, you might as well implement the comparison logic directly and call `publish_data()` when needed. This keeps the library focused as a faithful protocol implementation, not an opinionated application framework.
 
 **Bottom line:** This library provides the transport mechanisms (aliases, efficient binary encoding, sequence management) that enable RBE. You provide the intelligence that determines when metrics have meaningfully changed. This keeps sparkplug-cpp reusable, testable, and focused on doing one thing well.
+
+## C++-23 First, With Compatibility Layer
+
+This library is **designed for C++-23** and uses modern C++ features throughout (`std::expected`, ranges, concepts, etc.). This is the primary target.
+
+However, some compilers lack full C++-23 standard library support - specifically `std::expected` (feature test macro `__cpp_lib_expected >= 202202L`). To maintain compatibility, we provide a thin compatibility layer (`include/sparkplug/detail/compat.hpp`) that:
+
+- **On full C++-23 platforms** (Fedora 40+, macOS with Homebrew Clang): Uses native `std::expected`
+- **On platforms lacking stdlib support** (e.g., Ubuntu 24.04 LTS with clang-18): Automatically falls back to `tl::expected` via CMake FetchContent
+
+The compatibility layer uses feature detection macros to select the appropriate implementation at compile time. This is transparent to users - the API uses `sparkplug::stdx::expected` throughout, which resolves to the best available implementation.
+
+**Why not just require full C++-23?** Many production systems rely on LTS releases that lag behind the standard. The compatibility layer is minimal (single header) and will be removed once common platforms provide full C++-23 stdlib support.
 
 ## Quick Start
 
@@ -174,8 +187,6 @@ cd sparkplug_cpp
 cmake --preset default
 cmake --build build -j$(nproc)
 ```
-
-**Note:** This project uses a C++-23 compatibility layer. On platforms with full C++-23 support (Fedora 40+, macOS with Homebrew Clang), it uses native `std::expected`. On older platforms (Ubuntu 24.04 LTS), it automatically falls back to `tl::expected` via CMake FetchContent.
 
 ### Basic EdgeNode Example
 
