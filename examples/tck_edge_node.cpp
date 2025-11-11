@@ -185,9 +185,98 @@ void TCKEdgeNode::run_session_termination_test(const std::vector<std::string>& p
   }
 }
 
-void TCKEdgeNode::run_send_data_test(const std::vector<std::string>& /*params*/) {
-  log("WARN", "SendDataTest not yet implemented");
-  publish_result("OVERALL: NOT EXECUTED");
+void TCKEdgeNode::run_send_data_test(const std::vector<std::string>& params) {
+  if (params.size() < 3) {
+    log("ERROR", "Missing parameters for SendDataTest");
+    publish_result("OVERALL: NOT EXECUTED");
+    return;
+  }
+
+  const std::string& host_id = params[0];
+  const std::string& group_id = params[1];
+  const std::string& edge_node_id = params[2];
+
+  std::vector<std::string> device_ids;
+  if (params.size() > 3 && !params[3].empty()) {
+    device_ids = detail::split(params[3], ' ');
+  }
+
+  try {
+    log("INFO",
+        std::format("Starting SendDataTest: host={}, group={}, node={}, devices={}",
+                    host_id, group_id, edge_node_id,
+                    params.size() > 3 ? params[3] : "none"));
+
+    auto result = create_edge_node(host_id, group_id, edge_node_id, device_ids);
+    if (!result) {
+      log("ERROR", result.error());
+      publish_result("OVERALL: FAIL");
+      return;
+    }
+
+    device_ids_ = device_ids;
+    log("INFO", "Edge Node session established successfully");
+
+    log("INFO", "Sending NDATA messages from Edge Node");
+    constexpr int num_ndata_messages = 5;
+    for (int i = 0; i < num_ndata_messages; ++i) {
+      PayloadBuilder ndata;
+
+      ndata.add_metric_by_alias(1, 25.5 + static_cast<double>(i));
+      ndata.add_metric_by_alias(2, 101.3 + static_cast<double>(i) * 0.1);
+      ndata.add_metric_by_alias(3, std::string("online"));
+      ndata.add_metric_by_alias(4, static_cast<int64_t>(i));
+
+      auto ndata_result = edge_node_->publish_data(ndata);
+      if (!ndata_result) {
+        log("ERROR", "Failed to publish NDATA: " + ndata_result.error());
+        publish_result("OVERALL: FAIL");
+        return;
+      }
+
+      log("INFO", std::format("NDATA message {} published with aliases", i + 1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    log("INFO", std::format("Successfully sent {} NDATA messages", num_ndata_messages));
+
+    if (!device_ids.empty()) {
+      log("INFO", "Sending DDATA messages from devices");
+
+      for (const auto& device_id : device_ids) {
+        constexpr int num_ddata_messages = 3;
+        for (int i = 0; i < num_ddata_messages; ++i) {
+          PayloadBuilder ddata;
+
+          ddata.add_metric_by_alias(10, 22.0 + static_cast<double>(i));
+          ddata.add_metric_by_alias(11, std::string("ready"));
+          ddata.add_metric_by_alias(12, static_cast<int32_t>(100 + i * 10));
+
+          auto ddata_result = edge_node_->publish_device_data(device_id, ddata);
+          if (!ddata_result) {
+            log("ERROR", std::format("Failed to publish DDATA for {}: {}", device_id,
+                                     ddata_result.error()));
+            publish_result("OVERALL: FAIL");
+            return;
+          }
+
+          log("INFO", std::format("DDATA message {} published for device {} with aliases",
+                                  i + 1, device_id));
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        log("INFO", std::format("Successfully sent {} DDATA messages for device {}",
+                                num_ddata_messages, device_id));
+      }
+    }
+
+    log("INFO", "SendDataTest completed successfully");
+    publish_result("OVERALL: PASS");
+
+  } catch (const std::exception& e) {
+    log("ERROR", std::string("Exception: ") + e.what());
+    publish_result("OVERALL: FAIL");
+  }
 }
 
 void TCKEdgeNode::run_send_complex_data_test(const std::vector<std::string>& /*params*/) {
