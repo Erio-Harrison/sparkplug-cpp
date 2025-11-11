@@ -528,6 +528,8 @@ stdx::expected<void, std::string> EdgeNode::publish_death() {
       return stdx::unexpected("Not connected");
     }
 
+    seq_num_ = (seq_num_ + 1) % 256;
+
     PayloadBuilder death_payload;
     death_payload.add_metric("bdSeq", bd_seq_num_);
     death_payload.set_seq(seq_num_);
@@ -544,8 +546,6 @@ stdx::expected<void, std::string> EdgeNode::publish_death() {
     payload_data = death_payload.build();
     client = client_.get();
     qos = config_.death_qos;
-
-    seq_num_ = (seq_num_ + 1) % 256;
   }
 
   auto result = publish_message(client, topic_str, payload_data, qos, false);
@@ -776,6 +776,8 @@ EdgeNode::publish_device_death(std::string_view device_id) {
       return stdx::unexpected(std::format("Unknown device: '{}'", device_id));
     }
 
+    seq_num_ = (seq_num_ + 1) % 256;
+
     PayloadBuilder death_payload;
     death_payload.set_seq(seq_num_);
     death_payload.set_timestamp(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -791,8 +793,6 @@ EdgeNode::publish_device_death(std::string_view device_id) {
     payload_data = death_payload.build();
     client = client_.get();
     qos = config_.data_qos;
-
-    seq_num_ = (seq_num_ + 1) % 256;
   }
 
   auto result = publish_message(client, topic_str, payload_data, qos, false);
