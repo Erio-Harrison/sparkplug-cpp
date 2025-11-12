@@ -70,7 +70,7 @@ function(create_static_bundle)
     target_link_libraries(sparkplug_bundle_objects
         PUBLIC
             sparkplug_proto
-            libprotobuf
+            protobuf::libprotobuf
             tl::expected
         PRIVATE
             paho-mqtt3as-static
@@ -90,7 +90,7 @@ function(create_static_bundle)
 
     target_link_libraries(sparkplug_c_bundle PUBLIC
         paho-mqtt3as-static
-        libprotobuf
+        protobuf::libprotobuf
         OpenSSL::SSL
         OpenSSL::Crypto
     )
