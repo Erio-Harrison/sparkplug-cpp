@@ -193,7 +193,7 @@ C Library: musl (static linking)
 Library Contents:
 - Sparkplug C API
 - Paho MQTT C (v1.3.15)
-- Protocol Buffers (v28.3)
+- Protocol Buffers (v29.4)
 - Abseil C++ (20240722.0)
 
 External Dependencies:

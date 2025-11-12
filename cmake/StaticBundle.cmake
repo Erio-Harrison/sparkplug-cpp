@@ -38,7 +38,7 @@ FetchContent_MakeAvailable(abseil-cpp)
 FetchContent_Declare(
     protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-    GIT_TAG v28.3
+    GIT_TAG v29.4
     GIT_SHALLOW TRUE
     SOURCE_SUBDIR cmake
 )
