@@ -378,7 +378,7 @@ void TCKHostApplication::run_session_establishment_test(
     return;
   }
 
-  std::string host_id = params[0];
+  const std::string& host_id = params[0];
   log("INFO", "SessionEstablishmentTest: host_id=" + host_id);
 
   auto result = establish_session(host_id);
@@ -404,7 +404,7 @@ void TCKHostApplication::run_send_command_test(const std::vector<std::string>& p
     return;
   }
 
-  std::string host_id = params[0];
+  const std::string& host_id = params[0];
   log("INFO", "SendCommandTest: host_id=" + host_id + ", group_id=" + params[1] +
                   ", edge_node_id=" + params[2]);
 
@@ -427,7 +427,7 @@ void TCKHostApplication::run_receive_data_test(const std::vector<std::string>& p
     return;
   }
 
-  std::string host_id = params[0];
+  const std::string& host_id = params[0];
   log("INFO", "ReceiveDataTest: host_id=" + host_id);
 
   if (!host_application_ || current_host_id_ != host_id) {
@@ -450,7 +450,7 @@ void TCKHostApplication::run_edge_session_termination_test(
     return;
   }
 
-  std::string host_id = params[0];
+  const std::string& host_id = params[0];
   log("INFO", "EdgeSessionTerminationTest: host_id=" + host_id);
 
   if (!host_application_ || current_host_id_ != host_id) {
@@ -473,7 +473,7 @@ void TCKHostApplication::run_message_ordering_test(
     return;
   }
 
-  std::string host_id = params[0];
+  const std::string& host_id = params[0];
   log("INFO", "MessageOrderingTest: host_id=" + host_id);
 
   if (!host_application_ || current_host_id_ != host_id) {
