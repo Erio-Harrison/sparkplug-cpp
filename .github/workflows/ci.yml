@@ -232,7 +232,9 @@ jobs:
             openssl-dev \
             openssl-libs-static \
             zlib-static \
-            samurai
+            samurai \
+            protobuf-dev \
+            protoc
 
       - name: Build static musl bundle
         run: |

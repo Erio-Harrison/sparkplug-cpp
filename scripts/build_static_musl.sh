@@ -1,6 +1,11 @@
 #!/bin/bash
 # Build fully static C library bundle for musl/Alpine Linux
 # Creates a single .a file with all dependencies bundled
+#
+# Prerequisites (Alpine):
+#   apk add build-base cmake git bash linux-headers \
+#           openssl-dev openssl-libs-static zlib-static samurai \
+#           protobuf-dev protoc
 
 set -e
 

@@ -48,9 +48,8 @@ set(protobuf_ABSL_PROVIDER "package" CACHE STRING "" FORCE)
 set(protobuf_BUILD_PROTOC_BINARIES ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(protobuf)
 
-# Set the path to the protoc binary we just built (not system protoc)
-# The protoc executable will be in the build directory
-set(PROTOC_EXECUTABLE "${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH "Path to protoc" FORCE)
+# Note: protoc target is now available as 'protoc' (not protobuf::protoc in this version)
+# The proto/CMakeLists.txt will use this target
 include(${protobuf_SOURCE_DIR}/cmake/protobuf-generate.cmake)
 
 function(create_static_bundle)
