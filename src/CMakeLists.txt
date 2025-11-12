@@ -35,24 +35,35 @@ else()
     )
 endif()
 
-add_library(sparkplug_c SHARED
-    c_bindings.cpp
-)
+if(NOT BUILD_STATIC_BUNDLE)
+    add_library(sparkplug_c SHARED
+        c_bindings.cpp
+    )
 
-target_include_directories(sparkplug_c
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+    target_include_directories(sparkplug_c
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+    )
 
-target_link_libraries(sparkplug_c PRIVATE sparkplug_cpp)
+    target_link_libraries(sparkplug_c PRIVATE sparkplug_cpp)
+endif()
 
-install(TARGETS sparkplug_cpp sparkplug_c sparkplug_proto
-    EXPORT SparkplugTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-)
+if(BUILD_STATIC_BUNDLE)
+    install(TARGETS sparkplug_cpp sparkplug_proto
+        EXPORT SparkplugTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
+else()
+    install(TARGETS sparkplug_cpp sparkplug_c sparkplug_proto
+        EXPORT SparkplugTargets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
+endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
     DESTINATION include
