@@ -228,6 +228,14 @@ jobs:
             echo "docker_platform=linux/amd64" >> $GITHUB_OUTPUT
           fi
 
+      - name: Mark repo as safe for Git
+        run: |
+          docker run --rm \
+            --platform ${{ steps.platform.outputs.docker_platform }} \
+            -v $PWD:/workspace \
+            alpine:latest \
+            sh -c 'apk add --no-cache git && git config --global --add safe.directory /workspace'
+
       - name: Build static musl bundle in Alpine container
         run: |
           docker run --rm \
@@ -290,6 +298,14 @@ jobs:
           else
             echo "docker_platform=linux/amd64" >> $GITHUB_OUTPUT
           fi
+
+      - name: Mark repo as safe for Git
+        run: |
+          docker run --rm \
+            --platform ${{ steps.platform.outputs.docker_platform }} \
+            -v $PWD:/workspace \
+            fedora:42 \
+            sh -c 'dnf install -y git && git config --global --add safe.directory /workspace'
 
       - name: Build ${{ matrix.library }} library in Fedora container
         run: |
