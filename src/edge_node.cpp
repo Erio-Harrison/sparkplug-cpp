@@ -188,6 +188,11 @@ void EdgeNode::set_tls(std::optional<TlsOptions> tls) {
   config_.tls = std::move(tls);
 }
 
+void EdgeNode::set_log_callback(std::optional<LogCallback> callback) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  config_.log_callback = std::move(callback);
+}
+
 stdx::expected<void, std::string> EdgeNode::connect() {
   std::lock_guard<std::mutex> lock(mutex_);
 
@@ -868,6 +873,12 @@ EdgeNode::publish_device_command(std::string_view target_edge_node_id,
   }
 
   return publish_message(client, topic_str, payload_data, qos, false);
+}
+
+void EdgeNode::log(LogLevel level, std::string_view message) const noexcept {
+  if (config_.log_callback) {
+    config_.log_callback.value()(level, message);
+  }
 }
 
 } // namespace sparkplug

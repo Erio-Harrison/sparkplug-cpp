@@ -1,7 +1,7 @@
-// include/sparkplug/edge_node.hpp
 #pragma once
 
 #include "detail/compat.hpp"
+#include "logging.hpp"
 #include "mqtt_handle.hpp"
 #include "payload_builder.hpp"
 #include "sparkplug_b.pb.h"
@@ -129,13 +129,9 @@ public:
         username{}; ///< MQTT username for authentication (optional)
     std::optional<std::string>
         password{}; ///< MQTT password for authentication (optional)
-    std::optional<CommandCallback>
-        command_callback{}; ///< Optional callback for NCMD messages (subscribed before
-                            ///< NBIRTH)
-    std::optional<std::string>
-        primary_host_id{}; ///< Optional Primary Host Application ID. If set, EdgeNode
-                           ///< will subscribe to STATE/{primary_host_id} and wait for
-                           ///< {"online":true} before publishing NBIRTH/DBIRTH
+    std::optional<CommandCallback> command_callback{};
+    std::optional<std::string> primary_host_id{};
+    std::optional<LogCallback> log_callback{};
   };
 
   /**
@@ -178,6 +174,8 @@ public:
    * @note broker_url must use ssl:// prefix for TLS connections.
    */
   void set_tls(std::optional<TlsOptions> tls);
+
+  void set_log_callback(std::optional<LogCallback> callback);
 
   /**
    * @brief Connects to the MQTT broker and establishes a Sparkplug B session.
@@ -423,6 +421,8 @@ public:
   publish_device_command(std::string_view target_edge_node_id,
                          std::string_view target_device_id,
                          PayloadBuilder& payload);
+
+  void log(LogLevel level, std::string_view message) const noexcept;
 
 private:
   /**
