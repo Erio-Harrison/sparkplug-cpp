@@ -70,9 +70,8 @@ HostApplication::HostApplication(HostApplication&& other) noexcept
 
 HostApplication& HostApplication::operator=(HostApplication&& other) noexcept {
   if (this != &other) {
-    std::lock(mutex_, other.mutex_);
-    std::lock_guard<std::mutex> lock1(mutex_, std::adopt_lock);
-    std::lock_guard<std::mutex> lock2(other.mutex_, std::adopt_lock);
+    // Lock both mutexes with automatic deadlock avoidance
+    std::scoped_lock lock(mutex_, other.mutex_);
 
     config_ = std::move(other.config_);
     client_ = std::move(other.client_);
